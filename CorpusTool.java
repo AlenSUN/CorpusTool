@@ -17,19 +17,19 @@ public class CorpusTool {
 	   }
 	   br.close();
 	   
-	   Pattern lessonBeginPattern = Pattern.compile("<课 课名");
-	   Pattern lessonEndPattern = Pattern.compile("</课>");
-	   Pattern textBeginPattern = Pattern.compile("<课文 课文名");
-	   Pattern textEndPattern = Pattern.compile("</课文>");
-	   Pattern sectionBeginPattern = Pattern.compile("<段>");
-	   Pattern sectionEndPattern = Pattern.compile("</段>");
-	   Pattern exampleSentencesBeginPattern = Pattern.compile("<例句>");
-	   Pattern exampleSentencesEndPattern = Pattern.compile("</例句>");
-	   Pattern exampleBeginPattern = Pattern.compile("<例>");
-	   Pattern exampleEndPattern = Pattern.compile("</例>");
+	   Pattern lessonBeginPattern = Pattern.compile("\n?<课 课名");
+	   Pattern lessonEndPattern = Pattern.compile("\n?</课>");
+	   Pattern textBeginPattern = Pattern.compile("\n?<课文 课文名");
+	   Pattern textEndPattern = Pattern.compile("\n?</课文>");
+	   Pattern sectionBeginPattern = Pattern.compile("\n?<段>\n?");
+	   Pattern sectionEndPattern = Pattern.compile("\n?</段>");
+	   Pattern exampleSentencesBeginPattern = Pattern.compile("\n?<例句>\n?");
+	   Pattern exampleSentencesEndPattern = Pattern.compile("\n?</例句>");
+	   Pattern exampleBeginPattern = Pattern.compile("\n?<例>\n?");
+	   Pattern exampleEndPattern = Pattern.compile("\n?</例>");
 	   
 	   Pattern rightPattern = Pattern.compile(">");
-	   Pattern sentencePattern = Pattern.compile("。”?|！”?|？”?|：");
+	   Pattern sentencePattern = Pattern.compile("。”?|！”?|？！?”?|：");
 	   
 	   int lesson = 0;
 	   int text = 0;
@@ -53,7 +53,7 @@ public class CorpusTool {
 	   Matcher rightMatcher = rightPattern.matcher(textbookBuffer);
 	   
 	   lessonBeginMatcher.find();
-	   textbookWithIdBuffer.append(textbookBuffer.substring(0, lessonBeginMatcher.start()));
+	   textbookWithIdBuffer.append(textbookBuffer.substring(0, lessonBeginMatcher.start()) + "\n");
 	   textbookBuffer.delete(0, lessonBeginMatcher.start());
 	   while (textbookBuffer.length() != 0 && lessonBeginMatcher.lookingAt()) {
 		   lesson++;
@@ -61,8 +61,8 @@ public class CorpusTool {
 		   textbookBuffer.delete(0, lessonBeginMatcher.end());
 		   
 		   rightMatcher.reset().find();
-		   textbookWithIdBuffer.append(textbookBuffer.substring(0, rightMatcher.end() + 1));
-		   textbookBuffer.delete(0, rightMatcher.end() + 1);
+		   textbookWithIdBuffer.append(textbookBuffer.substring(0, rightMatcher.end()) + "\n");
+		   textbookBuffer.delete(0, rightMatcher.end());
 		   
 		   while (textBeginMatcher.lookingAt()) {
 			   text++;
@@ -70,13 +70,13 @@ public class CorpusTool {
 			   textbookBuffer.delete(0, textBeginMatcher.end());
 			   
 			   rightMatcher.reset().find();
-			   textbookWithIdBuffer.append(textbookBuffer.substring(0, rightMatcher.end() + 1));
-			   textbookBuffer.delete(0, rightMatcher.end() + 1);
+			   textbookWithIdBuffer.append(textbookBuffer.substring(0, rightMatcher.end()) + "\n");
+			   textbookBuffer.delete(0, rightMatcher.end());
 			   
 			   while (sectionBeginMatcher.lookingAt()) {
 				   section++;
 				   textbookWithIdBuffer.append("<段 段Id=\"" + section + "\">\n");
-				   textbookBuffer.delete(0, sectionBeginMatcher.end() + 1);
+				   textbookBuffer.delete(0, sectionBeginMatcher.end());
 				   
 				   sectionEndMatcher.reset().find();
 				   String sentences = textbookBuffer.substring(0, sectionEndMatcher.start());
@@ -84,51 +84,58 @@ public class CorpusTool {
 				   int before = 0;
 				   while (sentenceMatcher.find()) {
 					   sentence++;
+					   if (sentences.charAt(before) == '\n') {
+						   before++;
+					   }
 					   textbookWithIdBuffer.append("<句 句Id=\"" + sentence + "\">\n");
 					   textbookWithIdBuffer.append(sentences.substring(before, sentenceMatcher.end()) + "\n");
 					   textbookWithIdBuffer.append("</句>\n");
 					   before = sentenceMatcher.end();
 				   }
+				   if (sentence == 0) {
+					   textbookWithIdBuffer.append(sentences + "\n");
+				   }
 				   
-				   textbookWithIdBuffer.append(textbookBuffer.substring(sectionEndMatcher.start(), sectionEndMatcher.end() + 1));
-				   textbookBuffer.delete(0, sectionEndMatcher.end() + 1);
+				   textbookWithIdBuffer.append("</段>\n");
+				   textbookBuffer.delete(0, sectionEndMatcher.end());
 				   sentence = 0;
 			   }
 			   
 			   textEndMatcher.reset().find();
-			   textbookWithIdBuffer.append(textbookBuffer.substring(0, textEndMatcher.end() + 1));
-			   textbookBuffer.delete(0, textEndMatcher.end() + 1);
+			   textbookWithIdBuffer.append("</课文>\n");
+			   textbookBuffer.delete(0, textEndMatcher.end());
 			   section = 0;
 		   }
 		   
 		   while (exampleSentencesBeginMatcher.lookingAt()) {
 			   exampleSentences++;
 			   textbookWithIdBuffer.append("<例句 例句Id=\"" + exampleSentences + "\">\n");
-			   textbookBuffer.delete(0, exampleSentencesBeginMatcher.end() + 1);
+			   textbookBuffer.delete(0, exampleSentencesBeginMatcher.end());
 			   
 			   while (exampleBeginMatcher.lookingAt()) {
 				   example++;
 				   textbookWithIdBuffer.append("<例 例Id=\"" + example + "\">\n");
-				   textbookBuffer.delete(0, exampleBeginMatcher.end() + 1);
+				   textbookBuffer.delete(0, exampleBeginMatcher.end());
 				   
 				   exampleEndMatcher.reset().find();
-				   textbookWithIdBuffer.append(textbookBuffer.substring(0, exampleEndMatcher.end() + 1));
-				   textbookBuffer.delete(0, exampleEndMatcher.end() + 1);
+				   textbookWithIdBuffer.append(textbookBuffer.substring(0, exampleEndMatcher.end()) + "\n");
+				   textbookBuffer.delete(0, exampleEndMatcher.end());
 			   }
 			   
 			   exampleSentencesEndMatcher.reset().find();
-			   textbookWithIdBuffer.append(textbookBuffer.substring(0, exampleSentencesEndMatcher.end() + 1));
-			   textbookBuffer.delete(0, exampleSentencesEndMatcher.end() + 1);
+			   textbookWithIdBuffer.append("</例句>\n");
+			   textbookBuffer.delete(0, exampleSentencesEndMatcher.end());
 			   example = 0;
 		   }
 		   
 		   lessonEndMatcher.reset().find();
-		   textbookWithIdBuffer.append(textbookBuffer.substring(0, lessonEndMatcher.end() + 1));
-		   textbookBuffer.delete(0, lessonEndMatcher.end() + 1);
+		   textbookWithIdBuffer.append("</课>\n");
+		   textbookBuffer.delete(0, lessonEndMatcher.end());
 		   text = 0;
 		   exampleSentences = 0;
 	   }
 	   
+	   textbookWithIdBuffer.append("</教材>");
 	   System.out.println(textbookWithIdBuffer);
    }
 }
