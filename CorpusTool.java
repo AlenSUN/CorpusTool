@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,20 +47,6 @@ public class CorpusTool {
 	public CorpusTool(String textbookPath) {
 		this.textbookPath = textbookPath;
 		this.textbookWithIdBuffer = new StringBuffer();
-	}
-
-	public static StringBuffer readTextInBuffer(String path) throws IOException {
-		StringBuffer textBuffer = new StringBuffer();
-
-		FileReader fr = new FileReader(path);
-		BufferedReader br = new BufferedReader(fr);
-		String s = "";
-		while ((s = br.readLine()) != null) {
-			textBuffer.append(s + "\n");
-		}
-		br.close();
-
-		return textBuffer;
 	}
 	
 	public void constructMatcher() {
@@ -172,6 +159,27 @@ public class CorpusTool {
 		textbookWithIdBuffer.append("</教材>");
 		return textbookWithIdBuffer;
 	}
+	
+	public static StringBuffer readTextInBuffer(String path) throws IOException {
+		StringBuffer textBuffer = new StringBuffer();
+
+		FileReader fr = new FileReader(path);
+		BufferedReader br = new BufferedReader(fr);
+		String s = "";
+		while ((s = br.readLine()) != null) {
+			textBuffer.append(s + "\n");
+		}
+		br.close();
+
+		return textBuffer;
+	}
+	
+	public static void writeBufferToText(StringBuffer sb, String textPath) throws IOException {
+		FileWriter fw = new FileWriter(textPath);
+		fw.write(sb.toString());
+		fw.flush();
+		fw.close();
+	}
 
 	public static void main(String args[]) {
 		String path = "G:\\4-大四\\毕业设计(论文)\\项目\\XML文件样本\\90021A0002661 汉语入门.xml";
@@ -186,6 +194,14 @@ public class CorpusTool {
 		ct.constructMatcher();
 		StringBuffer resultBuffer = ct.handleCorpus();
 
-		System.out.println(resultBuffer);
+		String outPath = "G:\\4-大四\\毕业设计(论文)\\项目\\XML文件样本\\90021A0002661 汉语入门-1.xml";
+		try {
+			writeBufferToText(resultBuffer, outPath);
+		} catch (IOException e) {
+			System.out.println("WRITING ERROR");
+			System.exit(0);
+		}
+		
+		System.out.println("FINISHED");
 	}
 }
