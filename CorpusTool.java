@@ -181,7 +181,7 @@ public class CorpusTool {
 		fw.close();
 	}
 
-	public static void main(String args[]) {
+/*	public static void main(String args[]) {
 		String path = "G:\\4-大四\\毕业设计(论文)\\项目\\XML文件样本\\90021A0002661 汉语入门.xml";
 		CorpusTool ct = new CorpusTool(path);
 		try {
@@ -203,5 +203,5 @@ public class CorpusTool {
 		}
 		
 		System.out.println("FINISHED");
-	}
+	}*/
 }
