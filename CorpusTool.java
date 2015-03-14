@@ -180,6 +180,14 @@ public class CorpusTool {
 		fw.flush();
 		fw.close();
 	}
+	
+	public String getTextbookPath() {
+		return textbookPath;
+	}
+	
+	public void setTextbookBuffer(StringBuffer sb) {
+		textbookBuffer = sb;
+	}
 
 /*	public static void main(String args[]) {
 		String path = "G:\\4-大四\\毕业设计(论文)\\项目\\XML文件样本\\90021A0002661 汉语入门.xml";

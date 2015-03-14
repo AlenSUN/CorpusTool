@@ -12,6 +12,11 @@ import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.Panel;
 import java.awt.TextArea;
+import java.io.File;
+import java.io.IOException;
+
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class CorpusToolExecutor extends Frame {
 	private Label l1, l2;
@@ -21,6 +26,7 @@ public class CorpusToolExecutor extends Frame {
 	private GridBagConstraints gbConstraints;
 	private MenuItem openItem, exitItem, aboutItem;
 	private OpenFiles o;
+//	private JFileChooser chooser;
 	private About a;
 	
 	public CorpusToolExecutor() {
@@ -29,8 +35,14 @@ public class CorpusToolExecutor extends Frame {
 		l2 = new Label("File saves in:");
 		
 		convertButton = new Button("Convert!");
+		
 		t1 = new TextArea();
+		t1.setEditable(false);
+		t1.setFocusable(false);
+		
 		t2 = new TextArea();
+		t2.setEditable(false);
+		t2.setFocusable(false);
 		
 		gbLayout = new GridBagLayout();
 		setLayout(gbLayout);
@@ -91,12 +103,39 @@ public class CorpusToolExecutor extends Frame {
 	public boolean action(Event e, Object o) {
 		if (e.target instanceof MenuItem) {
 			if (e.arg.equals(openItem.getLabel())) {
-				o = new OpenFiles(this);
+				this.o = new OpenFiles(this);
+//				chooser = new JFileChooser();
+//				chooser.setFileFilter(new FileNameExtensionFilter("XML", "xml"));
+//				chooser.showOpenDialog(this);
 			} else if (e.arg.equals(aboutItem.getLabel())) {
 				a = new About(this);
 				setItemState(false);
 			} else {
 				removeFrame();
+			}
+		} else if (e.target == convertButton) {
+			String[] paths = t1.getText().split("\n");
+			for (String path : paths) {
+				CorpusTool ct = new CorpusTool(path);
+				try {
+					ct.setTextbookBuffer(CorpusTool.readTextInBuffer(ct.getTextbookPath()));
+				} catch (IOException e1) {
+					System.out.println("READING ERROR");
+					System.exit(0);
+				}
+
+				ct.constructMatcher();
+				StringBuffer resultBuffer = ct.handleCorpus();
+				
+				String outPath = path.replace(".xml", "-1.xml");
+				try {
+					CorpusTool.writeBufferToText(resultBuffer, outPath);
+				} catch (IOException e1) {
+					System.out.println("WRITING ERROR");
+					System.exit(0);
+				}
+				
+				t2.append(outPath + "\n");
 			}
 		}
 		
@@ -110,6 +149,10 @@ public class CorpusToolExecutor extends Frame {
 		}
 		
 		return super.handleEvent(e);
+	}
+	
+	public void addText(String s) {
+		t1.append(s + "\n");
 	}
 	
 	// setItemState is programmer-defined
@@ -134,11 +177,23 @@ public class CorpusToolExecutor extends Frame {
 }
 
 class OpenFiles extends FileDialog {
+	private CorpusToolExecutor parent;
+	
 	public OpenFiles(Frame f) {
 		super(f, "Open Dialog", FileDialog.LOAD);
-
+		parent = (CorpusToolExecutor) f;
+		
+		setFile("*.xml");
+		setMultipleMode(true);
 		setSize(400, 250);
 		setVisible(true);
+		
+		if (getFiles().length != 0) {
+			File[] files = getFiles();
+			for (File file : files) {
+				parent.addText(file.getPath());
+			}
+		}
 	}
 }
 
@@ -165,6 +220,7 @@ class About extends Dialog {
 		setSize(200, 100);
 		setVisible(true);
 	}
+	
 
 	public boolean handleEvent(Event e) {
 		if (e.id == Event.WINDOW_DESTROY) {
