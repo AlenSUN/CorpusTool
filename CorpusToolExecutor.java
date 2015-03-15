@@ -19,7 +19,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class CorpusToolExecutor extends Frame {
-	private Label l1, l2;
+	private Label l1, l2, l3;
 	private Button convertButton;
 	private TextArea t1, t2;
 	private GridBagLayout gbLayout;
@@ -28,11 +28,13 @@ public class CorpusToolExecutor extends Frame {
 	private OpenFiles o;
 //	private JFileChooser chooser;
 	private About a;
+	private Info i;
 	
 	public CorpusToolExecutor() {
 		super("Corpus Tool Executor");
 		l1 = new Label("File opened:");
 		l2 = new Label("File saves in:");
+		l3 = new Label("Executor started.");
 		
 		convertButton = new Button("Convert!");
 		
@@ -65,6 +67,8 @@ public class CorpusToolExecutor extends Frame {
 		
 		addComponent(t2, gbLayout, gbConstraints, 3, 0, 2, 1);
 		
+		addComponent(l3, gbLayout, gbConstraints, 4, 0, 2, 1);
+		
 		MenuBar bar = new MenuBar();
 		Menu fileMenu = new Menu("File");
 		Menu helpMenu = new Menu("Help");
@@ -82,7 +86,9 @@ public class CorpusToolExecutor extends Frame {
 		bar.add(helpMenu);
 		
 		setMenuBar(bar);
-		setSize(600, 450);
+		setSize(600, 460);
+		setResizable(false);
+		setLocation(200, 100);
 		setVisible(true);
 	}
 	
@@ -109,33 +115,38 @@ public class CorpusToolExecutor extends Frame {
 //				chooser.showOpenDialog(this);
 			} else if (e.arg.equals(aboutItem.getLabel())) {
 				a = new About(this);
-				setItemState(false);
 			} else {
 				removeFrame();
 			}
 		} else if (e.target == convertButton) {
-			String[] paths = t1.getText().split("\n");
-			for (String path : paths) {
-				CorpusTool ct = new CorpusTool(path);
-				try {
-					ct.setTextbookBuffer(CorpusTool.readTextInBuffer(ct.getTextbookPath()));
-				} catch (IOException e1) {
-					System.out.println("READING ERROR");
-					System.exit(0);
-				}
+			if (t1.getText().equals("")) {
+				i = new Info(this, "No file opened.");
+			} else {
+				String[] paths = t1.getText().split("\n");
+				l3.setText("Converting...");
+				for (String path : paths) {
+					CorpusTool ct = new CorpusTool(path);
+					try {
+						ct.setTextbookBuffer(CorpusTool.readTextInBuffer(ct.getTextbookPath()));
+					} catch (IOException e1) {
+						System.out.println("READING ERROR");
+						System.exit(0);
+					}
 
-				ct.constructMatcher();
-				StringBuffer resultBuffer = ct.handleCorpus();
-				
-				String outPath = path.replace(".xml", "-1.xml");
-				try {
-					CorpusTool.writeBufferToText(resultBuffer, outPath);
-				} catch (IOException e1) {
-					System.out.println("WRITING ERROR");
-					System.exit(0);
+					ct.constructMatcher();
+					StringBuffer resultBuffer = ct.handleCorpus();
+					
+					String outPath = path.replace(".xml", "-1.xml");
+					try {
+						CorpusTool.writeBufferToText(resultBuffer, outPath);
+					} catch (IOException e1) {
+						System.out.println("WRITING ERROR");
+						System.exit(0);
+					}
+					
+					t2.append(outPath + "\n");
 				}
-				
-				t2.append(outPath + "\n");
+				l3.setText("Task completed.");
 			}
 		}
 		
@@ -152,15 +163,20 @@ public class CorpusToolExecutor extends Frame {
 	}
 	
 	public void addText(String s) {
+		if (s.endsWith("-1.xml")) {
+			return;
+		}
+		
+		if (!t1.getText().equals("")) {
+			String[] paths = t1.getText().split("\n");
+			for (String path : paths) {
+				if (path.equals(s)) {
+					return;
+				}
+			}
+		}
+		
 		t1.append(s + "\n");
-	}
-	
-	// setItemState is programmer-defined
-	public void setItemState(boolean state) {
-		if (state == true)
-			aboutItem.setEnabled(true);
-		else
-			aboutItem.setEnabled(false);
 	}
 	
 	// removeFrame is programmer-defined
@@ -199,28 +215,32 @@ class OpenFiles extends FileDialog {
 
 class About extends Dialog {
 	private Button b;
-	private Label l;
-	private Panel p, p2;
+	private Label l1, l2;
+	private Panel p1, p2;
 	private CorpusToolExecutor parent;
 
 	public About(Frame f) {
-		super(f, "About", false);
+		super(f, "About", true);
 		parent = (CorpusToolExecutor) f;
 
-		b = new Button("Ok");
-		p = new Panel();
+		b = new Button("OK");
+		p1 = new Panel();
 		p2 = new Panel();
-		l = new Label("Corpus Tool Executor");
+		l1 = new Label("Corpus Tool Executor");
+		l2 = new Label("Copyright© 2015 Sun Ronglin.");
 
-		p.add(l);
+		p1.add(l1);
+		p1.add(l2);
 		p2.add(b);
 
-		add("Center", p);
+		add("Center", p1);
 		add("South", p2);
-		setSize(200, 100);
+		setSize(300, 150);
+		setResizable(false);
+		setLocation(parent.getX() + (parent.getWidth() - getWidth()) / 2,
+				parent.getY() + (parent.getHeight() - getHeight()) / 2);
 		setVisible(true);
 	}
-	
 
 	public boolean handleEvent(Event e) {
 		if (e.id == Event.WINDOW_DESTROY) {
@@ -242,6 +262,55 @@ class About extends Dialog {
 	public void removeDialog() {
 		setVisible(false);
 		dispose();
-		parent.setItemState(true);
+	}
+}
+
+class Info extends Dialog {
+	private Button b;
+	private Label l1;
+	private Panel p1, p2;
+	private CorpusToolExecutor parent;
+
+	public Info(Frame f, String info) {
+		super(f, "Info", true);
+		parent = (CorpusToolExecutor) f;
+
+		b = new Button("OK");
+		p1 = new Panel();
+		p2 = new Panel();
+		l1 = new Label("ERROR: " + info);
+
+		p1.add(l1);
+		p2.add(b);
+
+		add("Center", p1);
+		add("South", p2);
+		setSize(200, 100);
+		setResizable(false);
+		setLocation(parent.getX() + (parent.getWidth() - getWidth()) / 2,
+				parent.getY() + (parent.getHeight() - getHeight()) / 2);
+		setVisible(true);
+	}
+
+	public boolean handleEvent(Event e) {
+		if (e.id == Event.WINDOW_DESTROY) {
+			removeDialog();
+			return true;
+		}
+
+		return super.handleEvent(e);
+	}
+
+	public boolean action(Event e, Object o) {
+		if (e.target == b)
+			removeDialog();
+
+		return true;
+	}
+
+	// removeDialog is user-defined
+	public void removeDialog() {
+		setVisible(false);
+		dispose();
 	}
 }
