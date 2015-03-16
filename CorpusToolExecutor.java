@@ -23,7 +23,6 @@ public class CorpusToolExecutor extends Frame {
 	private GridBagConstraints gbConstraints;
 	private MenuItem openItem, exitItem, aboutItem;
 	private OpenFiles o;
-//	private JFileChooser chooser;
 	private About a;
 	private Info i;
 	
@@ -91,25 +90,20 @@ public class CorpusToolExecutor extends Frame {
 	
 	private void addComponent(Component c, GridBagLayout g,
 			GridBagConstraints gc, int row, int column, int width, int height) {
-		// set gridx and gridy
 		gc.gridx = column;
 		gc.gridy = row;
 
-		// set gridwidth and gridheight
 		gc.gridwidth = width;
 		gc.gridheight = height;
 
-		g.setConstraints(c, gc); // set constraints
-		add(c); // add component to applet
+		g.setConstraints(c, gc);
+		add(c);
 	}
 	
 	public boolean action(Event e, Object o) {
 		if (e.target instanceof MenuItem) {
 			if (e.arg.equals(openItem.getLabel())) {
 				this.o = new OpenFiles(this);
-//				chooser = new JFileChooser();
-//				chooser.setFileFilter(new FileNameExtensionFilter("XML", "xml"));
-//				chooser.showOpenDialog(this);
 			} else if (e.arg.equals(aboutItem.getLabel())) {
 				a = new About(this);
 			} else {
@@ -119,8 +113,8 @@ public class CorpusToolExecutor extends Frame {
 			if (t1.getText().equals("")) {
 				i = new Info(this, "No file opened.");
 			} else {
-				String[] paths = t1.getText().split("\n");
 				l3.setText("Converting...");
+				String[] paths = t1.getText().split("\n");
 				for (String path : paths) {
 					CorpusTool ct = new CorpusTool(path);
 					try {
@@ -178,7 +172,6 @@ public class CorpusToolExecutor extends Frame {
 		t1.append(s + "\n");
 	}
 	
-	// removeFrame is programmer-defined
 	public void removeFrame() {
 		setVisible(false);
 		dispose();
@@ -257,7 +250,6 @@ class About extends Dialog {
 		return true;
 	}
 
-	// removeDialog is user-defined
 	public void removeDialog() {
 		setVisible(false);
 		dispose();
@@ -266,7 +258,7 @@ class About extends Dialog {
 
 class Info extends Dialog {
 	private Button b;
-	private Label l1;
+	private Label l;
 	private Panel p1, p2;
 	private CorpusToolExecutor parent;
 
@@ -277,9 +269,9 @@ class Info extends Dialog {
 		b = new Button("OK");
 		p1 = new Panel();
 		p2 = new Panel();
-		l1 = new Label("ERROR: " + info);
+		l = new Label("ERROR: " + info);
 
-		p1.add(l1);
+		p1.add(l);
 		p2.add(b);
 
 		add("Center", p1);
@@ -307,7 +299,6 @@ class Info extends Dialog {
 		return true;
 	}
 
-	// removeDialog is user-defined
 	public void removeDialog() {
 		setVisible(false);
 		dispose();

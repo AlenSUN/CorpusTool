@@ -88,10 +88,10 @@ public class CorpusTool {
 	}
 	
 	public StringBuffer handleCorpus() {
-		
-		System.out.println(lessonBeginMatcher.find());
+		lessonBeginMatcher.find();
 		textbookWithIdBuffer.append(textbookBuffer.substring(0, lessonBeginMatcher.start()) + "\n");
 		textbookBuffer.delete(0, lessonBeginMatcher.start());
+		
 		while (textbookBuffer.length() != 0 && lessonBeginMatcher.lookingAt()) {
 			lesson++;
 			textbookWithIdBuffer.append("<课 课Id=\"" + lesson + "\" 课名");
@@ -167,7 +167,6 @@ public class CorpusTool {
 
 		FileInputStream fis = new FileInputStream(path);
 		InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
-//		FileReader fr = new FileReader(path);
 		BufferedReader br = new BufferedReader(isr);
 		String s = "";
 		while ((s = br.readLine()) != null) {
@@ -182,11 +181,6 @@ public class CorpusTool {
 		FileOutputStream fos = new FileOutputStream(textPath);
 		fos.write(sb.toString().getBytes("UTF-8"));
 		fos.close();
-		
-//		FileWriter fw = new FileWriter(textPath);
-//		fw.write(sb.toString());
-//		fw.flush();
-//		fw.close();
 	}
 	
 	public String getTextbookPath() {
@@ -196,28 +190,4 @@ public class CorpusTool {
 	public void setTextbookBuffer(StringBuffer sb) {
 		textbookBuffer = sb;
 	}
-
-/*	public static void main(String args[]) {
-		String path = "G:\\4-大四\\毕业设计(论文)\\项目\\XML文件样本\\90021A0002661 汉语入门.xml";
-		CorpusTool ct = new CorpusTool(path);
-		try {
-			ct.textbookBuffer = readTextInBuffer(ct.textbookPath);
-		} catch (IOException e) {
-			System.out.println("READING ERROR");
-			System.exit(0);
-		}
-
-		ct.constructMatcher();
-		StringBuffer resultBuffer = ct.handleCorpus();
-
-		String outPath = "G:\\4-大四\\毕业设计(论文)\\项目\\XML文件样本\\90021A0002661 汉语入门-1.xml";
-		try {
-			writeBufferToText(resultBuffer, outPath);
-		} catch (IOException e) {
-			System.out.println("WRITING ERROR");
-			System.exit(0);
-		}
-		
-		System.out.println("FINISHED");
-	}*/
 }
