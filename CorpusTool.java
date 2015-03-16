@@ -1,7 +1,8 @@
 import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +88,8 @@ public class CorpusTool {
 	}
 	
 	public StringBuffer handleCorpus() {
-		lessonBeginMatcher.find();
+		
+		System.out.println(lessonBeginMatcher.find());
 		textbookWithIdBuffer.append(textbookBuffer.substring(0, lessonBeginMatcher.start()) + "\n");
 		textbookBuffer.delete(0, lessonBeginMatcher.start());
 		while (textbookBuffer.length() != 0 && lessonBeginMatcher.lookingAt()) {
@@ -163,8 +165,10 @@ public class CorpusTool {
 	public static StringBuffer readTextInBuffer(String path) throws IOException {
 		StringBuffer textBuffer = new StringBuffer();
 
-		FileReader fr = new FileReader(path);
-		BufferedReader br = new BufferedReader(fr);
+		FileInputStream fis = new FileInputStream(path);
+		InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
+//		FileReader fr = new FileReader(path);
+		BufferedReader br = new BufferedReader(isr);
 		String s = "";
 		while ((s = br.readLine()) != null) {
 			textBuffer.append(s + "\n");
@@ -175,10 +179,14 @@ public class CorpusTool {
 	}
 	
 	public static void writeBufferToText(StringBuffer sb, String textPath) throws IOException {
-		FileWriter fw = new FileWriter(textPath);
-		fw.write(sb.toString());
-		fw.flush();
-		fw.close();
+		FileOutputStream fos = new FileOutputStream(textPath);
+		fos.write(sb.toString().getBytes("UTF-8"));
+		fos.close();
+		
+//		FileWriter fw = new FileWriter(textPath);
+//		fw.write(sb.toString());
+//		fw.flush();
+//		fw.close();
 	}
 	
 	public String getTextbookPath() {

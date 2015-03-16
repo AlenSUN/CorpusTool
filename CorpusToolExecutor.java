@@ -15,9 +15,6 @@ import java.awt.TextArea;
 import java.io.File;
 import java.io.IOException;
 
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 public class CorpusToolExecutor extends Frame {
 	private Label l1, l2, l3;
 	private Button convertButton;
@@ -129,8 +126,9 @@ public class CorpusToolExecutor extends Frame {
 					try {
 						ct.setTextbookBuffer(CorpusTool.readTextInBuffer(ct.getTextbookPath()));
 					} catch (IOException e1) {
-						System.out.println("READING ERROR");
-						System.exit(0);
+						i = new Info(this, "READING ERROR");
+						l3.setText("Stopped");
+						break;
 					}
 
 					ct.constructMatcher();
@@ -140,8 +138,9 @@ public class CorpusToolExecutor extends Frame {
 					try {
 						CorpusTool.writeBufferToText(resultBuffer, outPath);
 					} catch (IOException e1) {
-						System.out.println("WRITING ERROR");
-						System.exit(0);
+						i = new Info(this, "WRITING ERROR");
+						l3.setText("Stopped");
+						break;
 					}
 					
 					t2.append(outPath + "\n");
