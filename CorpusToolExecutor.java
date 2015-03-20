@@ -22,14 +22,15 @@ public class CorpusToolExecutor extends Frame {
 	private GridBagLayout gbLayout;
 	private GridBagConstraints gbConstraints;
 	private MenuItem openItem, exitItem, aboutItem;
+	
 	private OpenFiles o;
 	private About a;
 	private Info i;
 	
 	public CorpusToolExecutor() {
 		super("Corpus Tool Executor");
-		l1 = new Label("File opened:");
-		l2 = new Label("File saves in:");
+		l1 = new Label("Files opened:");
+		l2 = new Label("Files save in:");
 		l3 = new Label("Executor started.");
 		
 		convertButton = new Button("Convert!");
@@ -113,33 +114,7 @@ public class CorpusToolExecutor extends Frame {
 			if (t1.getText().equals("")) {
 				i = new Info(this, "No file opened.");
 			} else {
-				l3.setText("Converting...");
-				String[] paths = t1.getText().split("\n");
-				for (String path : paths) {
-					CorpusTool ct = new CorpusTool(path);
-					try {
-						ct.setTextbookBuffer(CorpusTool.readTextInBuffer(ct.getTextbookPath()));
-					} catch (IOException e1) {
-						i = new Info(this, "READING ERROR");
-						l3.setText("Stopped");
-						break;
-					}
-
-					ct.constructMatcher();
-					StringBuffer resultBuffer = ct.handleCorpus();
-					
-					String outPath = path.replace(".xml", "-1.xml");
-					try {
-						CorpusTool.writeBufferToText(resultBuffer, outPath);
-					} catch (IOException e1) {
-						i = new Info(this, "WRITING ERROR");
-						l3.setText("Stopped");
-						break;
-					}
-					
-					t2.append(outPath + "\n");
-				}
-				l3.setText("Task completed.");
+				convert();
 			}
 		}
 		
@@ -155,21 +130,61 @@ public class CorpusToolExecutor extends Frame {
 		return super.handleEvent(e);
 	}
 	
-	public void addText(String s) {
-		if (s.endsWith("-1.xml")) {
-			return;
+	public void convert() {
+		t2.setText("");
+		l3.setText("Converting...");
+		String[] paths = t1.getText().split("\n");
+		for (String path : paths) {
+			CorpusTool ct = new CorpusTool(path);
+			try {
+				ct.setTextbookBuffer(CorpusTool.readTextInBuffer(ct.getTextbookPath()));
+			} catch (IOException e1) {
+				i = new Info(this, "READING ERROR!");
+				continue;
+			}
+
+			ct.constructMatcher();
+			StringBuffer resultBuffer = new StringBuffer();
+			try {
+				resultBuffer = ct.handleCorpus();
+			} catch (IllegalStateException e) {
+				i = new Info(this, "WRONG FORMAT!");
+				continue;
+			}
+			
+			String outPath = path.replace(".xml", "-1.xml");
+			try {
+				CorpusTool.writeBufferToText(resultBuffer, outPath);
+			} catch (IOException e1) {
+				i = new Info(this, "WRITING ERROR!");
+				continue;
+			}
+			
+			t2.append(outPath + "\n");
 		}
+		l3.setText("Task completed.");
+	}
+	
+	public void addFiles(File[] files) {
+		String[] oldPaths = t1.getText().split("\n");
 		
-		if (!t1.getText().equals("")) {
-			String[] paths = t1.getText().split("\n");
-			for (String path : paths) {
-				if (path.equals(s)) {
-					return;
+		for (File file : files) {
+			String path = file.getPath();
+			if (!path.endsWith("-1.xml")) {
+				
+				boolean found = false;
+				for (String oldPath : oldPaths) {
+					if (oldPath.equals(path)) {
+						found = true;
+						break;
+					}
 				}
+				if (found == false) {
+					t1.append(path + "\n");
+				}
+				
 			}
 		}
-		
-		t1.append(s + "\n");
 	}
 	
 	public void removeFrame() {
@@ -193,15 +208,9 @@ class OpenFiles extends FileDialog {
 		
 		setFile("*.xml");
 		setMultipleMode(true);
-		setSize(400, 250);
 		setVisible(true);
 		
-		if (getFiles().length != 0) {
-			File[] files = getFiles();
-			for (File file : files) {
-				parent.addText(file.getPath());
-			}
-		}
+		parent.addFiles(getFiles());
 	}
 }
 
@@ -229,8 +238,7 @@ class About extends Dialog {
 		add("South", p2);
 		setSize(300, 150);
 		setResizable(false);
-		setLocation(parent.getX() + (parent.getWidth() - getWidth()) / 2,
-				parent.getY() + (parent.getHeight() - getHeight()) / 2);
+		setLocationRelativeTo(parent);
 		setVisible(true);
 	}
 
@@ -278,8 +286,7 @@ class Info extends Dialog {
 		add("South", p2);
 		setSize(200, 100);
 		setResizable(false);
-		setLocation(parent.getX() + (parent.getWidth() - getWidth()) / 2,
-				parent.getY() + (parent.getHeight() - getHeight()) / 2);
+		setLocationRelativeTo(parent);
 		setVisible(true);
 	}
 
