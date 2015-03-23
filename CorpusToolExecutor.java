@@ -21,7 +21,7 @@ public class CorpusToolExecutor extends Frame {
 	private TextArea t1, t2;
 	private GridBagLayout gbLayout;
 	private GridBagConstraints gbConstraints;
-	private MenuItem openItem, exitItem, aboutItem;
+	private MenuItem openItem, clearItem, exitItem, aboutItem;
 	
 	private OpenFiles o;
 	private About a;
@@ -71,10 +71,12 @@ public class CorpusToolExecutor extends Frame {
 		Menu helpMenu = new Menu("Help");
 		
 		openItem = new MenuItem("Open File");
+		clearItem = new MenuItem("Clear");
 		exitItem = new MenuItem("Exit");
 		aboutItem = new MenuItem("About");
 		
 		fileMenu.add(openItem);
+		fileMenu.add(clearItem);
 		fileMenu.add(exitItem);
 		helpMenu.add(aboutItem);
 		
@@ -105,12 +107,15 @@ public class CorpusToolExecutor extends Frame {
 		if (e.target instanceof MenuItem) {
 			if (e.arg.equals(openItem.getLabel())) {
 				this.o = new OpenFiles(this);
+			} else if (e.arg.equals(clearItem.getLabel())) {
+				t1.setText(null);
+			} else if (e.arg.equals(exitItem.getLabel())) {
+				removeFrame();
 			} else if (e.arg.equals(aboutItem.getLabel())) {
 				a = new About(this);
-			} else {
-				removeFrame();
 			}
 		} else if (e.target == convertButton) {
+			t2.setText(null);
 			if (t1.getText().equals("")) {
 				i = new Info(this, "No file opened.");
 			} else {
@@ -131,7 +136,6 @@ public class CorpusToolExecutor extends Frame {
 	}
 	
 	public void convert() {
-		t2.setText("");
 		l3.setText("Converting...");
 		String[] paths = t1.getText().split("\n");
 		for (String path : paths) {
