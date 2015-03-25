@@ -12,6 +12,10 @@ import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.Panel;
 import java.awt.TextArea;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
@@ -34,6 +38,7 @@ public class CorpusToolExecutor extends Frame {
 		l3 = new Label("Executor started.");
 		
 		convertButton = new Button("Convert!");
+		convertButton.addActionListener(listener);
 		
 		t1 = new TextArea();
 		t1.setEditable(false);
@@ -75,6 +80,11 @@ public class CorpusToolExecutor extends Frame {
 		exitItem = new MenuItem("Exit");
 		aboutItem = new MenuItem("About");
 		
+		openItem.addActionListener(listener);
+		clearItem.addActionListener(listener);
+		exitItem.addActionListener(listener);
+		aboutItem.addActionListener(listener);
+		
 		fileMenu.add(openItem);
 		fileMenu.add(clearItem);
 		fileMenu.add(exitItem);
@@ -89,7 +99,41 @@ public class CorpusToolExecutor extends Frame {
 		setResizable(false);
 		setLocation(200, 100);
 		setVisible(true);
+		
+		addWindowListener(new WindowAdapter() {
+			
+			@Override
+			public void windowClosing(WindowEvent e) {
+				removeFrame();
+			}
+		});
 	}
+	
+	private ActionListener listener = new ActionListener() {
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (e.getSource() instanceof MenuItem) {
+				String buttonName = e.getActionCommand();
+				if (buttonName.equals(openItem.getLabel())) {
+					o = new OpenFiles(CorpusToolExecutor.this);
+				} else if (buttonName.equals(clearItem.getLabel())) {
+					t1.setText(null);
+				} else if (buttonName.equals(exitItem.getLabel())) {
+					removeFrame();
+				} else if (buttonName.equals(aboutItem.getLabel())) {
+					a = new About(CorpusToolExecutor.this);
+				}
+			} else if (e.getSource() == convertButton) {
+				t2.setText(null);
+				if (t1.getText().equals("")) {
+					i = new Info(CorpusToolExecutor.this, "No file opened.");
+				} else {
+					convert();
+				}
+			}
+		}
+	};
 	
 	private void addComponent(Component c, GridBagLayout g,
 			GridBagConstraints gc, int row, int column, int width, int height) {
@@ -101,38 +145,6 @@ public class CorpusToolExecutor extends Frame {
 
 		g.setConstraints(c, gc);
 		add(c);
-	}
-	
-	public boolean action(Event e, Object o) {
-		if (e.target instanceof MenuItem) {
-			if (e.arg.equals(openItem.getLabel())) {
-				this.o = new OpenFiles(this);
-			} else if (e.arg.equals(clearItem.getLabel())) {
-				t1.setText(null);
-			} else if (e.arg.equals(exitItem.getLabel())) {
-				removeFrame();
-			} else if (e.arg.equals(aboutItem.getLabel())) {
-				a = new About(this);
-			}
-		} else if (e.target == convertButton) {
-			t2.setText(null);
-			if (t1.getText().equals("")) {
-				i = new Info(this, "No file opened.");
-			} else {
-				convert();
-			}
-		}
-		
-		return true;
-	}
-	
-	public boolean handleEvent(Event e) {
-		if (e.id == Event.WINDOW_DESTROY) {
-			removeFrame();
-			return true;
-		}
-		
-		return super.handleEvent(e);
 	}
 	
 	public void convert() {
@@ -237,29 +249,29 @@ class About extends Dialog {
 		p1.add(l1);
 		p1.add(l2);
 		p2.add(b);
-
+		
+		b.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				removeDialog();
+			}
+		});
+		
+		addWindowListener(new WindowAdapter() {
+			
+			@Override
+			public void windowClosing(WindowEvent e) {
+				removeDialog();
+			}
+		});
+		
 		add("Center", p1);
 		add("South", p2);
 		setSize(300, 150);
 		setResizable(false);
 		setLocationRelativeTo(parent);
 		setVisible(true);
-	}
-
-	public boolean handleEvent(Event e) {
-		if (e.id == Event.WINDOW_DESTROY) {
-			removeDialog();
-			return true;
-		}
-
-		return super.handleEvent(e);
-	}
-
-	public boolean action(Event e, Object o) {
-		if (e.target == b)
-			removeDialog();
-
-		return true;
 	}
 
 	public void removeDialog() {
@@ -285,29 +297,29 @@ class Info extends Dialog {
 
 		p1.add(l);
 		p2.add(b);
-
+		
+		b.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Info.this.removeDialog();
+			}
+		});
+		
+		addWindowListener(new WindowAdapter() {
+			
+			@Override
+			public void windowClosing(WindowEvent e) {
+				removeDialog();
+			}
+		});
+		
 		add("Center", p1);
 		add("South", p2);
 		setSize(200, 100);
 		setResizable(false);
 		setLocationRelativeTo(parent);
 		setVisible(true);
-	}
-
-	public boolean handleEvent(Event e) {
-		if (e.id == Event.WINDOW_DESTROY) {
-			removeDialog();
-			return true;
-		}
-
-		return super.handleEvent(e);
-	}
-
-	public boolean action(Event e, Object o) {
-		if (e.target == b)
-			removeDialog();
-
-		return true;
 	}
 
 	public void removeDialog() {
