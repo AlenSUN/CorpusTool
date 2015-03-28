@@ -1,7 +1,6 @@
 import java.awt.Button;
 import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.Event;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -148,6 +147,9 @@ public class CorpusToolExecutor extends Frame {
 	}
 	
 	public void convert() {
+		int errNum = 0;
+		String errInfo = "";
+		
 		l3.setText("Converting...");
 		String[] paths = t1.getText().split("\n");
 		for (String path : paths) {
@@ -155,7 +157,8 @@ public class CorpusToolExecutor extends Frame {
 			try {
 				ct.setTextbookBuffer(CorpusTool.readTextInBuffer(ct.getTextbookPath()));
 			} catch (IOException e1) {
-				i = new Info(this, "READING ERROR!");
+				errNum++;
+				errInfo = errInfo + path + ": READING ERROR!\n";
 				continue;
 			}
 
@@ -164,7 +167,8 @@ public class CorpusToolExecutor extends Frame {
 			try {
 				resultBuffer = ct.handleCorpus();
 			} catch (IllegalStateException e) {
-				i = new Info(this, "WRONG FORMAT!");
+				errNum++;
+				errInfo = errInfo + path + ": WRONG FORMAT!\n";
 				continue;
 			}
 			
@@ -172,12 +176,18 @@ public class CorpusToolExecutor extends Frame {
 			try {
 				CorpusTool.writeBufferToText(resultBuffer, outPath);
 			} catch (IOException e1) {
-				i = new Info(this, "WRITING ERROR!");
+				errNum++;
+				errInfo = errInfo + path + ": WRITING ERROR!\n";
 				continue;
 			}
 			
 			t2.append(outPath + "\n");
 		}
+		
+		if (errNum > 0) {
+			t2.append("\nError information: " + errNum + "\n" + errInfo);
+		}
+		
 		l3.setText("Task completed.");
 	}
 	
