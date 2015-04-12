@@ -1,8 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,7 +31,6 @@ public class CorpusTool {
 
 	private Matcher rightMatcher;
 	
-	private String textbookPath;
 	private StringBuffer textbookBuffer;
 	private StringBuffer textbookWithIdBuffer;
 	
@@ -45,12 +40,13 @@ public class CorpusTool {
 	private int exampleSentences = 0;
 	private int example = 0;
 
-	public CorpusTool(String textbookPath) {
-		this.textbookPath = textbookPath;
-		this.textbookWithIdBuffer = new StringBuffer();
+	public CorpusTool(CorpusFile textbookFile) throws IOException {
+		textbookBuffer = textbookFile.readTextBuffer();
+		textbookWithIdBuffer = new StringBuffer();
+		constructMatcher();
 	}
 	
-	public void constructMatcher() {
+	private void constructMatcher() {
 		lessonBeginMatcher = lessonBeginPattern.matcher(textbookBuffer);
 		textBeginMatcher = textBeginPattern.matcher(textbookBuffer);
 		sectionBeginMatcher = sectionBeginPattern.matcher(textbookBuffer);
@@ -162,32 +158,7 @@ public class CorpusTool {
 		return textbookWithIdBuffer;
 	}
 	
-	public static StringBuffer readTextInBuffer(String path) throws IOException {
-		StringBuffer textBuffer = new StringBuffer();
-
-		FileInputStream fis = new FileInputStream(path);
-		InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
-		BufferedReader br = new BufferedReader(isr);
-		String s = "";
-		while ((s = br.readLine()) != null) {
-			textBuffer.append(s + "\n");
-		}
-		br.close();
-
-		return textBuffer;
-	}
-	
-	public static void writeBufferToText(StringBuffer sb, String textPath) throws IOException {
-		FileOutputStream fos = new FileOutputStream(textPath);
-		fos.write(sb.toString().getBytes("UTF-8"));
-		fos.close();
-	}
-	
-	public String getTextbookPath() {
-		return textbookPath;
-	}
-	
-	public void setTextbookBuffer(StringBuffer sb) {
-		textbookBuffer = sb;
+	public void writeResultIn(CorpusFile outFile) throws IOException {
+		outFile.writeTextBuffer(textbookWithIdBuffer);
 	}
 }

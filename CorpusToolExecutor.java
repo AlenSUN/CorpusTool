@@ -153,19 +153,18 @@ public class CorpusToolExecutor extends Frame {
 		l3.setText("Converting...");
 		String[] paths = t1.getText().split("\n");
 		for (String path : paths) {
-			CorpusTool ct = new CorpusTool(path);
+			CorpusFile cfIn = new CorpusFile(path);
+			CorpusTool ct;
 			try {
-				ct.setTextbookBuffer(CorpusTool.readTextInBuffer(ct.getTextbookPath()));
+				ct = new CorpusTool(cfIn);
 			} catch (IOException e1) {
 				errNum++;
 				errInfo = errInfo + path + ": READING ERROR!\n";
 				continue;
 			}
-
-			ct.constructMatcher();
-			StringBuffer resultBuffer = new StringBuffer();
+			
 			try {
-				resultBuffer = ct.handleCorpus();
+				ct.handleCorpus();
 			} catch (IllegalStateException e) {
 				errNum++;
 				errInfo = errInfo + path + ": WRONG FORMAT!\n";
@@ -173,8 +172,9 @@ public class CorpusToolExecutor extends Frame {
 			}
 			
 			String outPath = path.replace(".xml", "-1.xml");
+			CorpusFile cfOut = new CorpusFile(outPath);
 			try {
-				CorpusTool.writeBufferToText(resultBuffer, outPath);
+				ct.writeResultIn(cfOut);
 			} catch (IOException e1) {
 				errNum++;
 				errInfo = errInfo + path + ": WRITING ERROR!\n";
