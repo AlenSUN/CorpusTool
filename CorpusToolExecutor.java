@@ -30,6 +30,11 @@ public class CorpusToolExecutor extends Frame {
 	private About a;
 	private Info i;
 	
+	private int convertedNumber;
+	private int filesNumber;
+	private int errNum;
+	private String errInfo;
+	
 	public CorpusToolExecutor() {
 		super("Corpus Tool Executor");
 		l1 = new Label("Files opened:");
@@ -147,48 +152,36 @@ public class CorpusToolExecutor extends Frame {
 	}
 	
 	public void convert() {
-		int errNum = 0;
-		String errInfo = "";
+		convertedNumber = 0;
+		errNum = 0;
+		errInfo = "";
 		
 		l3.setText("Converting...");
 		String[] paths = t1.getText().split("\n");
+		filesNumber = paths.length;
 		for (String path : paths) {
-			CorpusFile cfIn = new CorpusFile(path);
-			CorpusTool ct;
-			try {
-				ct = new CorpusTool(cfIn);
-			} catch (IOException e1) {
-				errNum++;
-				errInfo = errInfo + path + ": READING ERROR!\n";
-				continue;
-			}
-			
-			try {
-				ct.handleCorpus();
-			} catch (IllegalStateException e) {
-				errNum++;
-				errInfo = errInfo + path + ": WRONG FORMAT!\n";
-				continue;
-			}
-			
-			String outPath = path.replace(".xml", "-1.xml");
-			CorpusFile cfOut = new CorpusFile(outPath);
-			try {
-				ct.writeResultIn(cfOut);
-			} catch (IOException e1) {
-				errNum++;
-				errInfo = errInfo + path + ": WRITING ERROR!\n";
-				continue;
-			}
-			
-			t2.append(outPath + "\n");
+			ConvertWork cw = new ConvertWork(this, path);
+			Thread t = new Thread(cw);
+			t.start();
+		}
+	}
+	
+	public synchronized void receive(boolean success, String info) {
+		if (success) {
+			t2.append(info + "\n");
+		} else {
+			errNum++;
+			errInfo += info;
 		}
 		
-		if (errNum > 0) {
-			t2.append("\nError information: " + errNum + "\n" + errInfo);
+		convertedNumber++;
+		if (convertedNumber == filesNumber) {
+			if (errNum > 0) {
+				t2.append("\nError information: " + errNum + "\n" + errInfo);
+			}
+			
+			l3.setText("Task completed.");
 		}
-		
-		l3.setText("Task completed.");
 	}
 	
 	public void addFiles(File[] files) {
@@ -335,5 +328,45 @@ class Info extends Dialog {
 	public void removeDialog() {
 		setVisible(false);
 		dispose();
+	}
+}
+
+class ConvertWork implements Runnable {
+	private String path;
+	private CorpusToolExecutor parent;
+	
+	public ConvertWork(Frame f, String path) {
+		this.path = path;
+		parent = (CorpusToolExecutor) f;
+	}
+
+	@Override
+	public void run() {
+		CorpusFile cfIn = new CorpusFile(path);
+		CorpusTool ct;
+		try {
+			ct = new CorpusTool(cfIn);
+		} catch (IOException e) {
+			parent.receive(false, path + ": READING ERROR!\n");
+			return;
+		}
+		
+		try {
+			ct.handleCorpus();
+		} catch (IllegalStateException e) {
+			parent.receive(false, path + ": WRONG FORMAT!\n");
+			return;
+		}
+		
+		String outPath = path.replace(".xml", "-1.xml");
+		CorpusFile cfOut = new CorpusFile(outPath);
+		try {
+			ct.writeResultIn(cfOut);
+		} catch (IOException e) {
+			parent.receive(false, path + ": WRITING ERROR!\n");
+			return;
+		}
+		
+		parent.receive(true, outPath);
 	}
 }
