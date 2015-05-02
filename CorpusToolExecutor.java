@@ -166,7 +166,7 @@ public class CorpusToolExecutor extends Frame {
 		}
 	}
 	
-	public synchronized void receive(boolean success, String info) {
+	public synchronized void display(boolean success, String info) {
 		if (success) {
 			t2.append(info + "\n");
 		} else {
@@ -347,14 +347,14 @@ class ConvertWork implements Runnable {
 		try {
 			ct = new CorpusTool(cfIn);
 		} catch (IOException e) {
-			parent.receive(false, path + ": READING ERROR!\n");
+			parent.display(false, path + ": READING ERROR!\n");
 			return;
 		}
 		
 		try {
 			ct.handleCorpus();
 		} catch (IllegalStateException e) {
-			parent.receive(false, path + ": WRONG FORMAT!\n");
+			parent.display(false, path + ": WRONG FORMAT!\n");
 			return;
 		}
 		
@@ -363,10 +363,10 @@ class ConvertWork implements Runnable {
 		try {
 			ct.writeResultIn(cfOut);
 		} catch (IOException e) {
-			parent.receive(false, path + ": WRITING ERROR!\n");
+			parent.display(false, path + ": WRITING ERROR!\n");
 			return;
 		}
 		
-		parent.receive(true, outPath);
+		parent.display(true, outPath);
 	}
 }
